@@ -97,7 +97,16 @@ export class ArticlesController {
 
         // Track read (Non-blocking)
         const readerId = req.user?.userId;
-        this.articlesService.trackRead(id, readerId).catch(err => console.error('Read tracking failed', err));
+        let guestKey: string | undefined;
+        if (!readerId) {
+            const forwarded = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || req.ip || '';
+            const ua = (req.headers['user-agent'] || '').toString();
+            guestKey = `${forwarded}:${ua.substring(0, 80)}`;
+        }
+
+        this.articlesService
+            .trackRead(id, readerId, guestKey)
+            .catch(err => console.error('Read tracking failed', err));
 
         return article;
     }

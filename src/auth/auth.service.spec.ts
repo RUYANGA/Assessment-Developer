@@ -53,7 +53,7 @@ describe('AuthService', () => {
             const result = await service.signup(signupDto);
 
             expect(result).not.toHaveProperty('password');
-            expect(result.email).toBe(signupDto.email);
+            expect(result.user.email).toBe(signupDto.email);
         });
     });
 

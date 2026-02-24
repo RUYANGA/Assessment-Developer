@@ -33,9 +33,7 @@ export class AuthService {
                 user: result,
             };
         } catch (err) {
-            // preserve HTTP-friendly errors
             if (err instanceof ConflictException) throw err;
-            // eslint-disable-next-line no-console
             console.error('Signup error:', err);
             throw err;
         }

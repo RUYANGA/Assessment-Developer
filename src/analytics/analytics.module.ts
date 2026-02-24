@@ -12,6 +12,9 @@ if (process.env.DISABLE_BULL !== 'true') {
         BullModule.registerQueue({ name: 'analytics' }),
     );
     analyticsProviders.push(AnalyticsProcessor);
+    // Scheduler will register the repeatable job on module init
+    const { AnalyticsScheduler } = require('./analytics.scheduler');
+    analyticsProviders.push(AnalyticsScheduler);
 }
 
 @Module({

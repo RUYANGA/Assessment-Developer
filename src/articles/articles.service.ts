@@ -6,6 +6,9 @@ import { ArticleStatus } from '@prisma/client';
 
 @Injectable()
 export class ArticlesService {
+    // Simple in-memory cache (fallback) to dedupe guest read events (short-lived)
+    private guestReadMap = new Map<string, number>();
+
     constructor(private prisma: PrismaService) { }
 
     async create(authorId: string, createArticleDto: CreateArticleDto) {
@@ -145,7 +148,7 @@ export class ArticlesService {
         };
     }
 
-    async trackRead(articleId: string, readerId?: string) {
+    async trackRead(articleId: string, readerId?: string, guestKey?: string) {
         if (readerId) {
             // Anti-spam: check if the same registered user has read this article in the last 1 minute
             const oneMinuteAgo = new Date(Date.now() - 60000);
@@ -164,9 +167,34 @@ export class ArticlesService {
             }
         }
 
-        // For guests (no readerId), we always log for now, 
-        // or we could implement IP-based tracking if required.
-        // The requirement only mentioned capturing ReaderId from JWT if available.
+        // Guest dedupe: prefer Redis-backed dedupe across instances, fall back to in-memory map
+        if (!readerId && guestKey) {
+            try {
+                // Lazy require to avoid issues when ioredis is not configured in some environments
+                const { getRedisClient } = require('../common/redis.client');
+                const redis = getRedisClient();
+                if (redis) {
+                    const redisKey = `guest_read:${articleId}:${guestKey}`;
+                    // SET key NX EX 60 -> returns 'OK' when set, null if already exists
+                    const setResult = await redis.set(redisKey, '1', 'EX', 60, 'NX');
+                    if (setResult === null) {
+                        return; // duplicate within TTL
+                    }
+                } else {
+                    // fallback to in-memory dedupe
+                    const mapKey = `${articleId}:${guestKey}`;
+                    const now = Date.now();
+                    const last = this.guestReadMap.get(mapKey) || 0;
+                    if (now - last < 60000) {
+                        return; // Skip duplicate guest read within 1 minute
+                    }
+                    this.guestReadMap.set(mapKey, now);
+                    setTimeout(() => this.guestReadMap.delete(mapKey), 60000 + 1000);
+                }
+            } catch (err) {
+                // ignore cache errors and continue to log
+            }
+        }
 
         return (this.prisma as any).readLog.create({
             data: {
