@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -35,6 +36,12 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate --schema=prisma/schema.prisma
+
+      - name: Debug: Docker secrets presence
+        run: |
+          echo "DOCKER_NAME set: ${DOCKER_NAME_PRESENT}"
+        env:
+          DOCKER_NAME_PRESENT: ${{ secrets.DOCKER_NAME != '' }}
 
       - name: Push Prisma schema to DB
         env:
