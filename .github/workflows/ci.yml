@@ -61,7 +61,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_NAME }}
-          password: ${{ secrets.CI }}
+          password: ${{ secrets.DOCKER_TOKEN}}
           registry: ${{ secrets.DOCKER_REPO }}
 
       - name: Build and push image

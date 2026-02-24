@@ -154,3 +154,27 @@ If you want I can:
 - Add a monitoring endpoint that reports queue health and repeatable job registrations.
 
 Tell me which of these you'd like next.
+
+---
+
+## Docker Hub secrets (CI)
+
+The GitHub Actions workflow can push images to a Docker registry if you add the following repository secrets.
+
+- `DOCKER_NAME`: your Docker username (example: `mydockeruser`)
+- `DOCKER_REPO`: the full registry path used for tagging (Docker Hub example: `docker.io/mydockeruser`)
+- `CI`: the Docker Hub access token (store the token as the secret named `CI`)
+
+Example (Docker Hub):
+
+- `DOCKER_NAME = mydockeruser`
+- `DOCKER_REPO = docker.io/mydockeruser`
+- `CI = <docker-hub-access-token>`
+
+How to create and add the token:
+
+1. On Docker Hub: Account → Security → New Access Token → create a token with push permissions.
+2. On GitHub: Repository → Settings → Secrets and variables → Actions → New repository secret.
+3. Add `DOCKER_NAME`, `DOCKER_REPO`, and `CI` with the values above.
+
+After adding these secrets, the CI job will log in and push the image tag `${{ secrets.DOCKER_REPO }}/authors:latest` when you push to `main`.
