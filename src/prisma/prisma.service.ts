@@ -5,8 +5,6 @@ import { PrismaClient } from "@prisma/client";
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    // Use the default PrismaClient constructor. The generated client
-    // (v6) connects using the `DATABASE_URL` from the environment.
     super();
   }
 

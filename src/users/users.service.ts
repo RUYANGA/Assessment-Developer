@@ -15,8 +15,7 @@ export class UsersService {
 
             return this.prisma.user.findUnique({ where: { email } });
         } catch (err) {
-            // log detailed error for debugging
-            // eslint-disable-next-line no-console
+           
             console.error('Prisma findUnique error for email:', email, err);
             throw err;
         }
@@ -32,9 +31,6 @@ export class UsersService {
         return this.prisma.user.create({ data });
     }
 
-    // Convenience wrapper when calling from controllers/services that pass
-    // plain DTOs instead of a Prisma.UserCreateInput. Accepts the common
-    // signup fields and maps them to the Prisma create call.
     async createFromDto(payload: { name: string; email: string; password: string; role?: Role; }): Promise<User> {
         const data: Prisma.UserCreateInput = {
             name: payload.name,

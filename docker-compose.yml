@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authors
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      # Use the container postgres instance by default; override with .env if needed
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/authors
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    volumes:
+      - .:/app
+    command: npm run start:dev
+
+volumes:
+  db-data:
