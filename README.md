@@ -116,3 +116,41 @@ Authentication flow (Swagger)
 ---
 
 If you need help running the project with Docker, setting up a Neon Postgres connection, or enabling CI/CD to build and publish images, tell me your preferred target (Docker Hub / GHCR) and I will add the required workflow steps and secrets guidance.
+
+---
+
+## Operational notes
+
+- Scheduler: The app registers a repeatable `aggregate-daily` job (00:05 GMT) using BullMQ. Bull/Redis must be available for this to run automatically.
+- Guest read de-duplication: Guest reads are deduplicated within a short TTL (60s) using Redis `SET NX EX`. If `REDIS_URL` is not provided the app falls back to an in-memory dedupe (single-node only).
+
+## Quick verification & E2E scripts
+
+There are small scripts to help with quick end-to-end checks (use the `.env` for DB/Redis connection):
+
+```bash
+# create a test author + published article
+node scripts/e2e-create.js
+
+# count read_log entries for a given article
+node scripts/e2e-count.js <articleId>
+```
+
+To manually trigger aggregation (for testing) you can POST to the internal endpoint (requires app + Bull enabled):
+
+```http
+POST /author/admin/trigger-aggregation
+```
+
+## CI / Docker
+
+- A GitHub Actions workflow is included to build and test the project. If you want automatic image publishing, provide the registry and secrets and I can extend the workflow.
+- A `docker-compose.yml` is available for local development to run Postgres + Redis + the app.
+
+---
+
+If you want I can:
+- Add a Redis-backed integration test to CI that verifies guest dedupe and aggregation.
+- Add a monitoring endpoint that reports queue health and repeatable job registrations.
+
+Tell me which of these you'd like next.
