@@ -60,7 +60,17 @@ npm run build
 npm run start:prod
 ```
 
-## API Documentation (Endpoints)
+## API Documentation
+The API is fully documented using Swagger/OpenAPI. Once the server is running, you can access the interactive documentation at:
+- **URL**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+
+**Testing with Authentication:**
+1. Login via `/api/auth/login` to get a JWT token.
+2. In the Swagger UI, click the **Authorize** button at the top right.
+3. Enter the token in the value field and click **Authorize**.
+4. You can now use the "Try it out" feature for protected endpoints.
+
+## Endpoints Summary
 - `POST /api/auth/signup`: User registration (Author/Reader).
 - `POST /api/auth/login`: Identity management (returns JWT).
 - `POST /api/articles`: Create article (Author only, Draft by default).

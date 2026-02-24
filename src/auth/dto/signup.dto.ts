@@ -1,7 +1,12 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
 import { Role } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class SignupDto {
+    @ApiProperty({
+        description: 'The full name of the user',
+        example: 'John Doe',
+    })
     @IsString()
     @IsNotEmpty()
     @Matches(/^[a-zA-Z\s]+$/, {
@@ -9,10 +14,18 @@ export class SignupDto {
     })
     name: string;
 
+    @ApiProperty({
+        description: 'The email address of the user',
+        example: 'john.doe@example.com',
+    })
     @IsEmail({}, { message: 'Invalid email format' })
     @IsNotEmpty()
     email: string;
 
+    @ApiProperty({
+        description: 'The password for the account (min 8 characters, must include uppercase, lowercase, number, and special character)',
+        example: 'Password123!',
+    })
     @IsString()
     @MinLength(8, { message: 'Password must be at least 8 characters long' })
     @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
@@ -20,6 +33,11 @@ export class SignupDto {
     })
     password: string;
 
+    @ApiProperty({
+        description: 'The role of the user (AUTHOR or READER)',
+        enum: Role,
+        example: Role.AUTHOR,
+    })
     @IsEnum(Role)
     @IsNotEmpty()
     role: Role;

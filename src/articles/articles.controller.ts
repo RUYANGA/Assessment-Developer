@@ -19,7 +19,9 @@ import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
+@ApiTags('Articles')
 @Controller('articles')
 export class ArticlesController {
     constructor(private readonly articlesService: ArticlesService) { }
@@ -27,6 +29,10 @@ export class ArticlesController {
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.AUTHOR)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Create a new article (Authors only)' })
+    @ApiResponse({ status: 201, description: 'Article successfully created.' })
+    @ApiResponse({ status: 403, description: 'Forbidden. Only authors can create articles.' })
     create(@Req() req: any, @Body() createArticleDto: CreateArticleDto) {
         return this.articlesService.create(req.user.userId, createArticleDto);
     }
@@ -34,6 +40,12 @@ export class ArticlesController {
     @Get('me')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.AUTHOR)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'List articles created by the current author' })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'size', required: false, type: Number })
+    @ApiQuery({ name: 'showDeleted', required: false, type: Boolean })
+    @ApiResponse({ status: 200, description: 'Returns paginated list of author articles.' })
     findMyArticles(
         @Req() req: any,
         @Query('page') page?: string,
@@ -49,6 +61,13 @@ export class ArticlesController {
     }
 
     @Get()
+    @ApiOperation({ summary: 'Public news feed. List all published articles with filters' })
+    @ApiQuery({ name: 'category', required: false, type: String })
+    @ApiQuery({ name: 'author', required: false, type: String, description: 'Filter by author name' })
+    @ApiQuery({ name: 'q', required: false, type: String, description: 'Search in title' })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'size', required: false, type: Number })
+    @ApiResponse({ status: 200, description: 'Returns paginated list of published articles.' })
     findAll(
         @Query('category') category?: string,
         @Query('author') author?: string,
@@ -65,6 +84,9 @@ export class ArticlesController {
 
     @Get(':id')
     @UseGuards(OptionalJwtAuthGuard)
+    @ApiOperation({ summary: 'Get article details and track read' })
+    @ApiResponse({ status: 200, description: 'Returns the article details.' })
+    @ApiResponse({ status: 404, description: 'Article not found.' })
     async findOne(@Param('id') id: string, @Req() req: any) {
         const article = await this.articlesService.findOne(id);
 
@@ -83,6 +105,11 @@ export class ArticlesController {
     @Put(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.AUTHOR)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update an article (Authors only)' })
+    @ApiResponse({ status: 200, description: 'Article successfully updated.' })
+    @ApiResponse({ status: 403, description: 'Forbidden. You can only edit your own articles.' })
+    @ApiResponse({ status: 404, description: 'Article not found.' })
     update(
         @Param('id') id: string,
         @Req() req: any,
@@ -94,6 +121,11 @@ export class ArticlesController {
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.AUTHOR)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Soft delete an article (Authors only)' })
+    @ApiResponse({ status: 200, description: 'Article successfully deleted.' })
+    @ApiResponse({ status: 403, description: 'Forbidden. You can only delete your own articles.' })
+    @ApiResponse({ status: 404, description: 'Article not found.' })
     remove(@Param('id') id: string, @Req() req: any) {
         return this.articlesService.softDelete(id, req.user.userId);
     }
