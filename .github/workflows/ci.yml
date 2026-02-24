@@ -39,9 +39,13 @@ jobs:
 
       - name: Debug: Docker secrets presence
         run: |
-          echo "DOCKER_NAME set: ${DOCKER_NAME_PRESENT}"
+          if [ -n "$DOCKER_NAME_PRESENT" ]; then
+            echo "DOCKER_NAME set: true"
+          else
+            echo "DOCKER_NAME set: false"
+          fi
         env:
-          DOCKER_NAME_PRESENT: ${{ secrets.DOCKER_NAME != '' }}
+          DOCKER_NAME_PRESENT: ${{ secrets.DOCKER_NAME }}
 
       - name: Push Prisma schema to DB
         env:
@@ -68,7 +72,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_NAME }}
-          password: ${{ secrets.DOCKER_TOKEN}}
+          password: ${{ secrets.DOCKER_TOKEN }}
           registry: ${{ secrets.DOCKER_REPO }}
 
       - name: Build and push image
