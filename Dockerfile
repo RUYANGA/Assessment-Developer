@@ -8,6 +8,8 @@ RUN npm ci --silent
 
 # Copy sources and build
 COPY . .
+# Generate Prisma client before building so TypeScript can import generated types
+RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npm run build
 
 FROM node:20-alpine AS runner
