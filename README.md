@@ -1,88 +1,118 @@
-# Eskalate News API - Backend Assessment
+# Eskalate News API — Backend
 
-A robust, production-ready RESTful API where Authors publish content and Readers consume it, featuring a high-frequency Analytics Engine.
+Eskalate News is a production-oriented REST API that enables Authors to publish content and Readers to consume it. The service includes a high-frequency analytics pipeline to aggregate read events and present author-facing metrics.
 
-## Tech Stack
-- **Framework**: NestJS (Node.js + TypeScript)
-- **Database**: PostgreSQL (via Neon)
-- **ORM**: Prisma
-- **Job Queue**: BullMQ (Redis-backed for high-frequency processing)
-- **Authentication**: JWT with Role-Based Access Control (RBAC)
-- **Validation**: Zod (optional) / Class-validator + Class-transformer
+## Tech stack
+- Framework: NestJS (TypeScript)
+- Database: PostgreSQL (Neon or self-hosted)
+- ORM: Prisma
+- Job queue: BullMQ (Redis)
+- Auth: JWT with role-based access control (RBAC)
+- Validation: class-validator / class-transformer (Zod optional)
 
-## Features
-- **Secure Auth**: Signup/Login with strong password hashing (bcrypt) and JWT claims.
-- **Article Lifecycle**: Full CRUD for authors with Soft Deletion support.
-- **Public Feed**: Filtered, paginated news feed for readers (Published & non-deleted only).
-- **Read Tracking**: Non-blocking raw log capture for every article read.
-- **Analytics Engine**: Daily aggregation of read logs using a job queue (GMT timezone).
-- **Author Dashboard**: Aggregated performance metrics (total views) per article.
-- **Anti-Spam**: Prevents duplicate read logs from the same user/guest within 1 minute.
+## Key features
+- Secure authentication (bcrypt password hashing + JWT)
+- Author article lifecycle (create, update, soft-delete)
+- Public, paginated feed of published articles
+- Non-blocking read logging and a daily analytics aggregator
+- Author dashboard with per-article metrics
+- Anti-spam protection for read events (de-dup within time window)
 
-## Setup & Running Locally
+---
 
-### Prerequisites
+## Quick start (local development)
+
+Prerequisites
 - Node.js (v18+)
-- Redis (Required for BullMQ analytics job queue)
-- PostgreSQL (Existing Neon DB instance used)
+- Redis (required for BullMQ)
+- PostgreSQL (Neon recommended for production; local Postgres works for development)
 
-### Installation
-1. Clone the repository and navigate to the project directory.
+Install
+
+1. Clone the repository and change into the project directory.
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
 
-### Environment Variables
-Create a `.env` file in the root directory with the following:
+```bash
+npm install
+```
+
+Configuration
+
+Create a `.env` file in the repository root and set the required variables:
+
 ```env
-DATABASE_URL="postgresql://..." # Provided in the assessment
+# Postgres connection (example)
+DATABASE_URL="postgresql://user:password@host:5432/dbname?schema=public"
+
+# JWT secret
 JWT_SECRET="your_secret_key"
-REDIS_HOST="localhost"
+
+# Redis connection for BullMQ
+REDIS_HOST=localhost
 REDIS_PORT=6379
-PORT=3000
+
+# Optional: API port (overrides default)
+PORT=3003
 ```
 
-### Database Initialization
-Apply migrations and generate Prisma client:
+Database
+
+Generate the Prisma client and apply the schema to the database (development):
+
 ```bash
-npx prisma generate
-npx prisma migrate dev
+npx prisma generate --schema=prisma/schema.prisma
+npx prisma db push --schema=prisma/schema.prisma
 ```
 
-### Running the App
+Run the app
+
 ```bash
-# Development mode
+# Development (watch)
 npm run start:dev
 
-# Production mode
+# Production
 npm run build
 npm run start:prod
 ```
 
-## API Documentation
-The API is fully documented using Swagger/OpenAPI. Once the server is running, you can access the interactive documentation at:
-- **URL**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+If you prefer Docker for development, a `docker-compose.yml` is included to run the app together with a local Postgres instance.
 
-**Testing with Authentication:**
-1. Login via `/api/auth/login` to get a JWT token.
-2. In the Swagger UI, click the **Authorize** button at the top right.
-3. Enter the token in the value field and click **Authorize**.
-4. You can now use the "Try it out" feature for protected endpoints.
+---
 
-## Endpoints Summary
-- `POST /api/auth/signup`: User registration (Author/Reader).
-- `POST /api/auth/login`: Identity management (returns JWT).
-- `POST /api/articles`: Create article (Author only, Draft by default).
-- `GET /api/articles/me`: List own articles (Author only, paginated).
-- `PUT /api/articles/:id`: Edit article (Author ownership check).
-- `DELETE /api/articles/:id`: Soft delete article (Author ownership check).
-- `GET /api/articles`: Public news feed (Published & non-deleted, filtered).
-- `GET /api/articles/:id`: Read article (Captures read log).
-- `GET /api/author/dashboard`: Performance metrics (Author only, aggregated views).
+## API documentation
 
-## Architecture Choices
-- **NestJS**: Chosen for its robust DI system and modular architecture, perfect for scalable backends.
-- **BullMQ**: used for the Analytics Engine to ensure high-frequency logs are processed asynchronously without blocking the main event loop.
-- **Soft Deletion**: Implemented via `deletedAt` timestamp to preserve data integrity for analytics while hiding content from public feeds.
-- **Global Interceptor**: A response interceptor was implemented to ensure 100% compliance with the required response object structure.
+Swagger/OpenAPI docs are available when the server is running:
+
+- `http://localhost:${process.env.PORT || 3003}/api/docs`
+
+Authentication flow (Swagger)
+
+1. POST `/api/auth/login` to obtain a JWT.
+2. Click **Authorize** in the Swagger UI and paste `Bearer <token>`.
+3. Use protected endpoints via the UI.
+
+---
+
+## Selected endpoints
+- `POST /api/auth/signup` — Register a new user (roles: AUTHOR | READER)
+- `POST /api/auth/login` — Obtain JWT
+- `POST /api/articles` — Create article (AUTHOR only)
+- `GET /api/articles/me` — List my articles (AUTHOR only)
+- `PUT /api/articles/:id` — Update article (ownership enforced)
+- `DELETE /api/articles/:id` — Soft delete article
+- `GET /api/articles` — Public feed (published articles only)
+- `GET /api/articles/:id` — Read article (creates read log)
+- `GET /api/author/dashboard` — Author analytics dashboard
+
+---
+
+## Architectural notes
+
+- NestJS provides a modular, testable structure with DI.
+- BullMQ is used to queue read events and run aggregation jobs asynchronously.
+- Soft deletion uses a `deletedAt` timestamp to preserve historical data for analytics while hiding content from public queries.
+- A global response interceptor standardizes API responses across all endpoints.
+
+---
+
+If you need help running the project with Docker, setting up a Neon Postgres connection, or enabling CI/CD to build and publish images, tell me your preferred target (Docker Hub / GHCR) and I will add the required workflow steps and secrets guidance.
