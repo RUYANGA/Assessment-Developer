@@ -2,6 +2,16 @@
 
 Eskalate News is a production-oriented REST API that enables Authors to publish content and Readers to consume it. The service includes a high-frequency analytics pipeline to aggregate read events and present author-facing metrics.
 
+**Why NestJS (instead of plain Node.js + TypeScript)**
+
+- **Structured, modular architecture:** NestJS provides a batteries-included framework with modules, controllers, and providers which speeds up building a well-organized, testable codebase — especially important under time pressure for assessments.
+- **Dependency injection:** Built-in DI makes wiring services (Prisma, BullMQ, Redis, JWT) explicit and easy to test, avoiding fragile global singletons common in plain Node setups.
+- **Convention over configuration:** NestJS reduces boilerplate for common concerns (validation pipes, interceptors, guards), letting us focus on domain logic (articles, read tracking, analytics) instead of wiring infra.
+- **Ecosystem & integrations:** First-class integrations (Swagger, Passport/JWT, BullMQ) make it faster and safer to add production-ready features.
+- **Developer ergonomics:** Type-safe decorators, DI, and CLI scaffolding improve developer productivity and maintainability compared to ad-hoc Express-based setups.
+
+Choosing NestJS lets us deliver a clean, maintainable backend quickly while using modern TypeScript patterns; the app still uses plain Node.js runtime and can be adapted to lighter frameworks if needed.
+
 ## Tech stack
 - Framework: NestJS (TypeScript)
 - Database: PostgreSQL (Neon or self-hosted)

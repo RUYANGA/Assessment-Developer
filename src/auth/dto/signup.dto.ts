@@ -1,5 +1,9 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
-import { Role } from '@prisma/client';
+
+export enum RoleEnum {
+    AUTHOR = 'AUTHOR',
+    READER = 'READER',
+}
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SignupDto {
@@ -35,10 +39,10 @@ export class SignupDto {
 
     @ApiProperty({
         description: 'The role of the user (AUTHOR or READER)',
-        enum: Role,
-        example: Role.AUTHOR,
+        enum: RoleEnum,
+        example: RoleEnum.AUTHOR,
     })
-    @IsEnum(Role)
+    @IsEnum(RoleEnum)
     @IsNotEmpty()
-    role: Role;
+    role: RoleEnum;
 }
