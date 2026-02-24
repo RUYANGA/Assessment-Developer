@@ -1,84 +1,68 @@
 name: CI
-
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch: {}
+  push:
+    branches: [ main ]
 
 jobs:
-  build:
+  ci:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: authors
+          POSTGRES_DB: testdb
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
-        run: npx prisma generate --schema=prisma/schema.prisma
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
-      - name: Debug: Docker secrets presence
-        run: |
-          if [ -n "$DOCKER_NAME_PRESENT" ]; then
-            echo "DOCKER_NAME set: true"
-          else
-            echo "DOCKER_NAME set: false"
-          fi
+      - name: Prepare Database
+        run: npx prisma db push
         env:
-          DOCKER_NAME_PRESENT: ${{ secrets.DOCKER_NAME }}
-
-      - name: Push Prisma schema to DB
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/authors
-        run: npx prisma db push --schema=prisma/schema.prisma
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
 
       - name: Build
         run: npm run build
+  docker:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
 
-      - name: Run tests
-        run: npm test --if-present
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Build Docker image (no push)
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: false
-          tags: |
-            authors:latest
-
-      # Optional: push to registry if secrets are provided. Uncomment and configure
-      - name: Log in to registry
-        if: ${{ secrets.DOCKER_NAME != '' }}
-        uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_NAME }}
-          password: ${{ secrets.CI }}
-          registry: ${{ secrets.DOCKER_REPO }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push image
-        if: ${{ secrets.DOCKER_NAME != '' }}
-        uses: docker/build-push-action@v4
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_REPO }}/authors:latest
+          tags: ${{ secrets.DOCKER_REPO }}:latest
