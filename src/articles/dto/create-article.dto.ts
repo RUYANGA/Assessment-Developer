@@ -1,5 +1,8 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
-import { ArticleStatus } from '@prisma/client';
+export enum ArticleStatusEnum {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+}
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticleDto {
@@ -34,11 +37,11 @@ export class CreateArticleDto {
 
     @ApiProperty({
         description: 'The initial status of the article (DRAFT or PUBLISHED). Defaults to DRAFT if omitted.',
-        enum: ArticleStatus,
+        enum: ArticleStatusEnum,
         required: false,
-        example: ArticleStatus.DRAFT,
+        example: ArticleStatusEnum.DRAFT,
     })
-    @IsEnum(ArticleStatus)
+    @IsEnum(ArticleStatusEnum)
     @IsOptional()
-    status?: ArticleStatus;
+    status?: ArticleStatusEnum;
 }
