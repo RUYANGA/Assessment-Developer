@@ -56,17 +56,18 @@ jobs:
             authors:latest
 
       # Optional: push to registry if secrets are provided. Uncomment and configure
-      # - name: Log in to registry
-      #   if: secrets.DOCKER_USERNAME
-      #   uses: docker/login-action@v2
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
-      #
-      # - name: Build and push image
-      #   if: secrets.DOCKER_USERNAME
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_REGISTRY }}/myorg/authors:latest
+      - name: Log in to registry
+        if: secrets.DOCKER_NAME
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_NAME }}
+          password: ${{ secrets.CI }}
+          registry: ${{ secrets.DOCKER_REPO }}
+
+      - name: Build and push image
+        if: secrets.DOCKER_NAME
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_REPO }}/authors:latest
