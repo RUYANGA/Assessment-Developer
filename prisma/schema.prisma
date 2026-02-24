@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  AUTHOR
+  READER
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String
+  email    String    @unique
+  password String
+  role     Role
+  articles Article[]
+  readLogs ReadLog[]
+
+  @@map("users")
+}
+
+model Article {
+  id              String           @id @default(uuid()) @db.Uuid
+  title           String           @db.VarChar(150)
+  content         String           @db.Text
+  category        String
+  status          ArticleStatus    @default(DRAFT)
+  authorId        String           @db.Uuid
+  author          User             @relation(fields: [authorId], references: [id])
+  createdAt       DateTime         @default(now()) @db.Timestamp
+  deletedAt       DateTime?        @db.Timestamp
+  readLogs        ReadLog[]
+  dailyAnalytics DailyAnalytics[]
+
+  @@map("articles")
+}
+
+model ReadLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  articleId String   @db.Uuid
+  article   Article  @relation(fields: [articleId], references: [id])
+  readerId  String?  @db.Uuid
+  reader    User?    @relation(fields: [readerId], references: [id])
+  readAt    DateTime @default(now()) @db.Timestamp
+
+  @@map("read_logs")
+}
+
+model DailyAnalytics {
+  id         String   @id @default(uuid()) @db.Uuid
+  articleId  String   @db.Uuid
+  article    Article  @relation(fields: [articleId], references: [id])
+  viewCount  Int      @default(0)
+  date       DateTime @db.Date
+
+  @@unique([articleId, date])
+  @@map("daily_analytics")
+}
