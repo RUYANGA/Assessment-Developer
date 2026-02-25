@@ -19,10 +19,10 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --only=production --silent
 
-# Ensure Prisma client is generated in the runtime image too
-# Copy Prisma schema and run generate so @prisma/client runtime files exist
-COPY prisma ./prisma
-RUN npx prisma generate --schema=prisma/schema.prisma
+
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Copy built output
 COPY --from=builder /app/dist ./dist

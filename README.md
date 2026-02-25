@@ -1,7 +1,7 @@
-# Eskalate News API — Backend
+## Eskalate News API — Backend
 
-Swagger UI: https://article-api-wjlu.onrender.com/api/docs#/
-Backend API : https://article-api-wjlu.onrender.com/api
+- Swagger UI: https://article-api-wjlu.onrender.com/api/docs#/
+- Backend API : https://article-api-wjlu.onrender.com/api
 
 Eskalate News is a production-oriented REST API that enables Authors to publish content and Readers to consume it. The service includes a high-frequency analytics pipeline to aggregate read events and present author-facing metrics.
 
