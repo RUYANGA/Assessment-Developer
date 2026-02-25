@@ -3,6 +3,24 @@
 - Swagger UI: https://article-api-wjlu.onrender.com/api/docs#/
 - Backend API : https://article-api-wjlu.onrender.com/api
 
+## Submission
+
+This repository is ready for assessment submission. Quick notes for reviewers:
+
+- Live Swagger UI: https://article-api-wjlu.onrender.com/api/docs#/  (interactive API explorer)
+- Live API root: https://article-api-wjlu.onrender.com/api
+- To run locally: follow the "Quick start" steps below (generate Prisma client, run `npm run start:dev`)
+- CI: GitHub Actions runs on `main` and pull requests; Docker image build is configured in `.github/workflows/ci.yml`.
+- Docker: `Dockerfile` builds a multi-stage image and includes the generated Prisma client artifacts so `@prisma/client` is available at runtime.
+- Aggregation: background aggregation runs via BullMQ (repeatable job). For testing a synchronous endpoint `POST /api/author/admin/run-aggregation-sync` is available (remove or protect before production).
+
+Included files to review:
+- `Dockerfile` — runtime build configuration
+- `.github/workflows/ci.yml` — CI + Docker build
+- `prisma/schema.prisma` — database schema and models
+
+If you want, I can add a small submission checklist or CI badge to the top of this README.
+
 Eskalate News is a production-oriented REST API that enables Authors to publish content and Readers to consume it. The service includes a high-frequency analytics pipeline to aggregate read events and present author-facing metrics.
 
 **Why NestJS (instead of plain Node.js + TypeScript)**
