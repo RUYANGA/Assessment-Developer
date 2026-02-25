@@ -4,10 +4,11 @@ on:
     branches: [ main ]
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   ci:
-    if: github.event_name == 'pull_request'
+    # Run CI for both pull requests and pushes to main (prevent skipping CI on main)
     runs-on: ubuntu-latest
 
     services:
