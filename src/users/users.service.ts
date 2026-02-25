@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User, Role } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
+import { Role } from '../common/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,7 @@ export class UsersService {
 
             return this.prisma.user.findUnique({ where: { email } });
         } catch (err) {
-           
+
             console.error('Prisma findUnique error for email:', email, err);
             throw err;
         }
