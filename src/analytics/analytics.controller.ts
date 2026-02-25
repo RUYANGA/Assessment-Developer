@@ -48,4 +48,17 @@ export class AnalyticsController {
         await this.analyticsQueue.add('aggregate-daily', {});
         return { message: 'Aggregation job added to queue' };
     }
+
+    // Synchronous aggregation endpoint for testing: runs aggregation immediately and returns result
+    @Post('admin/run-aggregation-sync')
+    @ApiOperation({ summary: 'Run daily aggregation synchronously (Admin/Internal, testing only)' })
+    @ApiResponse({ status: 200, description: 'Aggregation result.' })
+    async runAggregationSync() {
+        try {
+            const count = await this.analyticsService.aggregateDailyStats();
+            return { message: 'Aggregation completed', articlesAggregated: count };
+        } catch (err) {
+            return { message: 'Aggregation failed', error: err?.message || err };
+        }
+    }
 }
